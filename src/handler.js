@@ -25,8 +25,6 @@ const addBookHandler = (request, h) => {
         updatedAt
     }
 
-    books.push(newBook)
-
     if (name === undefined) {
         const response = h.response({
             status: 'fail',
@@ -46,6 +44,8 @@ const addBookHandler = (request, h) => {
         response.code(400)
         return response
     }
+
+    books.push(newBook)
 
     const isSuccess = books.filter((book) => book.id === id).length > 0
     if (isSuccess) {
@@ -71,9 +71,32 @@ const addBookHandler = (request, h) => {
 
 const getAllBookHandler = (request, h) => {
     const { name, reading, finished } = request.query
-    let result = books
 
-    if (books.length === 0) {
+    if (books.length > 0) {
+        let result = books
+        if (name) {
+            result = result.filter((book) => book.name.toLowerCase().includes(name.toLowerCase()))
+        }
+        if (reading) {
+            result = result.filter((book) => book.reading == Number(reading))
+        }
+        if (finished) {
+            result = result.filter((book) => book.finished == Number(finished))
+        }
+
+        const response = h.response({
+            status: 'success',
+            data: {
+                books: result.map((book) => ({
+                    id: book.id,
+                    name: book.name,
+                    publisher: book.publisher
+                }))
+            }
+        })
+        response.code(200)
+        return response
+    } else {
         const response = h.response({
             status: 'success',
             data: {
@@ -83,29 +106,6 @@ const getAllBookHandler = (request, h) => {
         response.code(200)
         return response
     }
-
-    if (name) {
-        result = result.filter((book) => book.name.toLowerCase().includes(name.toLowerCase()))
-    }
-    if (reading) {
-        result = result.filter((book) => book.reading === Boolean(reading))
-    }
-    if (finished) {
-        result = result.filter((book) => book.finished === Number(finished))
-    }
-
-    const response = h.response({
-        status: 'success',
-        data: {
-            books: books.map((book) => ({
-                id: book.id,
-                name: book.name,
-                publisher: book.publisher
-            }))
-        }
-    })
-    response.code(200)
-    return response
 }
 // const getAllBookHandler = () => ({
 //     status: 'success',
